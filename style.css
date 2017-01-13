@@ -1,0 +1,94 @@
+
+gspadr {
+border : #ababab solid 5px;
+margin : 5px;
+padding : 5px;
+display : block;
+}
+film:after{
+content:"GREENSIDE ADR REPORT: " attr(name) " - REEL:" attr(reel) " - FPS:" attr(fps);
+font-size:40px;
+font-weight:bold;
+border:5px solid #bcbcbc;
+display:block;
+margin:10px;
+padding:10px;
+}
+scenes {
+#border : #cacaca solid 5px;
+padding : 5px;
+display : block;
+}
+scene:before {
+content : attr(scenename);
+display : block;
+border-top:10px solid #bacabc;
+font-size:35px;
+font-weight:bold;
+padding-bottom:5px;
+}
+scene:after{ 
+margin:50px;
+}
+character:before {
+content : attr(charactername);
+display : block;
+margin-left : 25px;
+font-weight:bold;
+font-size:30px;
+padding-top:10px;
+}
+
+character lines line:before {
+	content : "DLG: " attr(dialogue);
+	border-top: 2px solid #daadda;
+	display : block;
+	margin-left : 50px;
+	font-weight:bold;
+}
+
+clips{
+display:block;
+border-top: 15px solid #ababab;
+}
+track:before {
+font-size:35px;
+font-weight:bold;
+margin-top:10px;
+color : #ff0000;
+#background-color: #012345;
+content : attr(name) "  (Total Duration " attr(duration) ")";
+display : block;
+}
+
+clip:before{
+	margin-left:50px;
+	margin-top:10px;
+	content: attr(scene) " : DLG : " attr(line);
+	display:block;
+	font-weight:bold;
+}
+scene time:before {
+	display:block;
+	content: "ST: " attr(start) ", ED: " attr(end) ", DU: " attr(duration);
+	margin-left:25px;
+	font-size:20px;
+	
+}
+
+line time:before {
+	display:block;
+	content: "ST: " attr(start) ", ED: " attr(end) ", DU: " attr(duration);
+	margin-left:60px;
+	font-size:small;
+	
+}
+clip time:before {
+	display:block;
+	content: "ST: " attr(start) ", ED: " attr(end) ", DU: " attr(duration);
+	margin-left:60px;
+	font-size:small;
+	
+}
+
+
