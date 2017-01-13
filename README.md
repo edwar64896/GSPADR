@@ -2,7 +2,7 @@
 
 Instructions for installation:
 
-1. Install perl
+1. Install perl (via homebrew?)
 2. use cpan to install:
 
 Time::Timecode
@@ -18,7 +18,7 @@ Instructions for editing:
 
 Instruction for reporting:
 
-1. Export Session Info as Text using the following parameters:
+* Export Session Info as Text using the following parameters:
 
 Include Track EDL's
 Don't show crossfades
@@ -27,8 +27,8 @@ File Format TextEdit 'TEXT'
 
 Save as .txt file, for example reel1.txt
 
-2. invoke the parser and save the output as an XML file:
+* invoke the parser and save the output as an XML file:
 
 ./parse.pl reel1.txt > reel1.xml
 
-3. open the XML file in Safari. Safari will apply the .css file in the directory for display purposes.
+* Open the XML file in Safari. Safari will apply the .css file in the directory for display purposes.
