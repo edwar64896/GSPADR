@@ -1,4 +1,4 @@
-I#!/usr/bin/perl
+#!/usr/local/bin/perl
 use strict;
 use Data::Dumper;
 use Time::Timecode;
@@ -42,15 +42,14 @@ while (<FILE1>) {
 			if ($tkname =~ m/GSPADR\[SCENES\]/) {
 				$inScenes=1;
 				$inTrack=0;
-#				print "in SCENES\n";
 			}
 			if ($tkname =~ m/\[GSPADR\]$/) {
 				$tkname =~ s/\[GSPADR\]//g;
 				$inTrack=1;
 				$inScenes=0;
-#				print "in Track $tkname\n";
 			}
 		}
+
 #
 # collect Scene information from regions in the GSPADR[SCENES] track
 #
@@ -163,8 +162,12 @@ sub searchScenes {
 # Insert clip information into each scene block so that we can easily sort by both scene and character.
 #
 my $tid=0;
+my $tx=$tracks{'tracks'};
 
-while ((my $key2, my $val2) = each ($tracks{'tracks'})) {
+#print Dumper(\$tx);
+
+#while ((my $key2, my $val2) = each ($tracks{'tracks'})) {
+while ((my $key2, my $val2) = each (%$tx)) {
 	my @keys=sort { $val2->{$a} <=> $val2->{$b} } keys(%$val2);
 
 	while ( (my $key3,my $val3) = each (@keys)) {
@@ -189,11 +192,10 @@ $writer->pi('xml','version="1.0" encoding="UTF-8"');
 $writer->pi('xml-stylesheet','href="./style.css" type="text/css"');
 $writer->startTag("gspadr");
 
-my $parms=$tracks{'parameters'};
 $writer->startTag("film",
-	"name"=>$parms->{FILM},
-	"reel"=>$parms->{REEL},
-	"fps"=>$parms->{FPS}
+	"name"=>$tracks{'parameters'}{'FILM'},
+	"reel"=>$tracks{'parameters'}{'REEL'},
+	"fps"=>$tracks{'parameters'}{'FPS'}
 );
 	
 	
@@ -204,35 +206,37 @@ $writer->startTag("scenes");
 #
 # Iterate through the scenes
 #
-my $val2=$tracks{'scenes'};
+my %scenes=%{$tracks{'scenes'}};
 	
 	#
 	# sort the scenes based on the start time
 	#
-	my @keys=sort { getFrames($val2->{$a}->{START}) <=> getFrames($val2->{$b}->{START}) } keys(%$val2);
+	#my @keys=sort { getFrames($val2->{$a}->{START}) <=> getFrames($val2->{$b}->{START}) } keys(%$val2);
+	my @keys=sort { getFrames($scenes{$a}{'START'}) <=> getFrames($scenes{$b}{'START'}) } keys(%{ $tracks{'scenes'}});
 
 	while ( (my $key3,my $val3) = each (@keys)) {
 
 		my $szLines=0;
 
-		if (exists $val2->{$val3}->{LINES}) {
-			my @kLines=keys(%$val2->{$val3}->{LINES});
+		if (exists $scenes{$val3}{'LINES'}) {
+			my %kLines=$scenes{$val3}{'LINES'};
+			my @kLines=keys(%kLines);
 			$szLines=@kLines;
 		}
 
 		if ($szLines>0) {
 
 		$writer->startTag("scene",
-			"scenename"=>$val2->{$val3}->{'SCENENAME'},
+			"scenename"=>$scenes{$val3}{'SCENENAME'},
 			"numcharacters"=>$szLines
 		);
 
-			$writer->startTag("time",
-			"duration"=>$val2->{$val3}->{'DURATION'},
-			"start"=>$val2->{$val3}->{'START'},
-			"end"=>$val2->{$val3}->{'END'}
+		$writer->startTag("time",
+			"duration"=>$scenes{$val3}{'DURATION'},
+			"start"=>$scenes{$val3}{'START'},
+			"end"=>$scenes{$val3}{'END'}
 			);
-			$writer->endTag("time");
+		$writer->endTag("time");
 
 		#
 		# each scene has a number of characters for ADR purposes
@@ -240,24 +244,25 @@ my $val2=$tracks{'scenes'};
 
 		$writer->startTag("characters");
 			
-		my $characters=$val2->{$val3}->{LINES};
-		my @charKeys=sort { $val2->{$a} <=> $val2->{$b} } keys(%$characters);
+		my %characters=%{$scenes{$val3}{'LINES'}};
+		#my @charKeys=sort { $val2->{$a} <=> $val2->{$b} } keys(%characters);
+		my @charKeys=sort { $scenes{$a} <=> $scenes{$b} } keys(%characters);
 		while ((my $key4,my $val4) = each (@charKeys)) {
 			
 			$writer->startTag("character",
 				"charactername"=>$val4
 				);
 			$writer->startTag("lines");
-			my $lines=$characters->{$val4};
-			my @lineKeys=sort { $val2->{$a} <=> $val2->{$b} } keys(%$lines);
+			my %lines=%{$characters{$val4}};
+			my @lineKeys=sort { $scenes{$a} <=> $scenes{$b} } keys(%lines);
 			while ((my $key5,my $val5) = each (@lineKeys)) {
 				$writer->startTag("line",
-				"dialogue"=>$lines->{$val5}->{CLIPNAME}
+				"dialogue"=>$lines{$val5}{'CLIPNAME'}
 				);
 					$writer->startTag("time",
-					"duration"=>$lines->{$val5}->{'DURATION'},
-					"start"=>$lines->{$val5}->{'START'},
-					"end"=>$lines->{$val5}->{'END'}
+					"duration"=>$lines{$val5}{'DURATION'},
+					"start"=>$lines{$val5}{'START'},
+					"end"=>$lines{$val5}{'END'}
 					);
 					$writer->endTag("time");
 				$writer->endTag("line");
@@ -273,25 +278,29 @@ my $val2=$tracks{'scenes'};
 		$writer->endTag("scene");
 		}
 	}
+
 $writer->endTag("scenes");
 
 $writer->startTag("clips");
-while ((my $key2, my $val2) = each ($tracks{'tracks'})) {
+
+my %tks=%{$tracks{'tracks'}};
+#while ((my $key2, my $val2) = each ($tracks{'tracks'})) {
+while ((my $key2, my $scenes) = each (%tks)) {
 
 	$writer->startTag("track","name" => $key2,
 		"duration"=>framesToTC($chartotals{$key2}));
-	my @keys=sort { getFrames($val2->{$a}->{START}) <=> getFrames($val2->{$b}->{START}) } keys(%$val2);
+	my @keys=sort { getFrames($scenes->{$a}->{START}) <=> getFrames($scenes->{$b}->{START}) } keys(%$scenes);
 
 	while ( (my $key3,my $val3) = each (@keys)) {
 		$writer->startTag("clip",
-			"line"=>$val2->{$val3}->{'CLIPNAME'},
-			"character"=>$val2->{$val3}->{'CHARACTER'},
-			"scene"=>$val2->{$val3}->{'SCENENAME'}
+			"line"=>$scenes->{$val3}->{'CLIPNAME'},
+			"character"=>$scenes->{$val3}->{'CHARACTER'},
+			"scene"=>$scenes->{$val3}->{'SCENENAME'}
 		);
 		$writer->startTag("time",
-			"duration"=>$val2->{$val3}->{'DURATION'},
-			"start"=>$val2->{$val3}->{'START'},
-			"end"=>$val2->{$val3}->{'END'}
+			"duration"=>$scenes->{$val3}->{'DURATION'},
+			"start"=>$scenes->{$val3}->{'START'},
+			"end"=>$scenes->{$val3}->{'END'}
 		);
 		$writer->endTag("time");
 		$writer->endTag("clip");
