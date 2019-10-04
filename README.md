@@ -1,4 +1,4 @@
-# GSPADR
+# GSPADR for Protools
 
 Instructions for installation:
 
